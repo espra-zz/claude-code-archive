@@ -1,0 +1,52 @@
+// Prisma Schema for CryptoPulse MVP
+// This defines the database structure for storing AI insights and market data
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// AI-generated market insights with detected assets
+model Insight {
+  id          String   @id @default(uuid())
+  content     String   @db.Text
+  sentiment   Float    // -1.0 (bearish) to 1.0 (bullish)
+  category    String   // e.g., "Bitcoin", "DeFi", "NFT", "General"
+  assets      Json     // Array of detected assets: {symbol, name, position, length}[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category, createdAt])
+  @@index([createdAt(sort: Desc)])
+}
+
+// Real-time price data for crypto assets
+model AssetPrice {
+  id          String   @id @default(uuid())
+  symbol      String   // e.g., "BTC", "ETH", "SOL"
+  name        String   // e.g., "Bitcoin", "Ethereum", "Solana"
+  price       Float
+  change24h   Float    // Percentage change in last 24 hours
+  volume      Float    // 24h trading volume
+  high24h     Float    // 24h high price
+  low24h      Float    // 24h low price
+  marketCap   Float?   // Optional: market capitalization
+  timestamp   DateTime @default(now())
+
+  @@index([symbol, timestamp(sort: Desc)])
+  @@index([change24h(sort: Desc)]) // For top movers query
+  @@index([timestamp(sort: Desc)])
+}
+
+// Optional: User watchlist for Phase 2
+// model Watchlist {
+//   id        String   @id @default(uuid())
+//   userId    String
+//   symbols   Json     // Array of asset symbols
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
